@@ -10,9 +10,24 @@
     let
       inherit (flake-utils.lib) eachDefaultSystem mkApp;
       pythonFixOverlay = final: prev: {
-        python311Packages = prev.python311Packages.overrideScope (pyFinal: pyPrev: {
-          apscheduler = pyPrev.apscheduler.overridePythonAttrs (_: { doCheck = false; });
-        });
+        python311Packages = prev.python311Packages.overrideScope (pyFinal: pyPrev:
+          let
+            names = [
+              "apscheduler"
+              "elastic-transport"
+              "elasticsearch"
+              "pytest-benchmark"
+              "graphql-core"
+              "moto"
+            ];
+            present = builtins.filter (n: builtins.hasAttr n pyPrev) names;
+            disable = name: {
+              name = name;
+              value = (builtins.getAttr name pyPrev).overridePythonAttrs (_: { doCheck = false; });
+            };
+          in
+          builtins.listToAttrs (map disable present)
+        );
       };
     in
     eachDefaultSystem (system:
