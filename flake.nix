@@ -9,11 +9,25 @@
   outputs = { self, nixpkgs, flake-utils }:
     let
       inherit (flake-utils.lib) eachDefaultSystem mkApp;
-      pythonNoTestsOverlay = final: prev: {
-        python311Packages = prev.python311Packages.overrideScope (pyFinal: pyPrev: {
-          buildPythonPackage = args: pyPrev.buildPythonPackage (args // { doCheck = false; });
-          buildPythonApplication = args: pyPrev.buildPythonApplication (args // { doCheck = false; });
-        });
+      pythonFixOverlay = final: prev: {
+        python311Packages = prev.python311Packages.overrideScope (pyFinal: pyPrev:
+          let
+            names = [
+              "apscheduler"
+              "elastic-transport"
+              "elasticsearch"
+              "pytest-benchmark"
+              "graphql-core"
+              "moto"
+            ];
+            present = builtins.filter (n: builtins.hasAttr n pyPrev) names;
+            disable = name: {
+              name = name;
+              value = (builtins.getAttr name pyPrev).overridePythonAttrs (_: { doCheck = false; });
+            };
+          in
+          builtins.listToAttrs (map disable present)
+        );
       };
     in
     eachDefaultSystem (system:
