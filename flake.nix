@@ -32,7 +32,7 @@
     in
     eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; overlays = [ pythonFixOverlay ]; };
+        pkgs = import nixpkgs { inherit system; overlays = [ pythonNoTestsOverlay ]; };
         lib = pkgs.lib;
         py = pkgs.python311Packages;
 
@@ -97,7 +97,7 @@
       }
     ) // {
       overlays.default = final: prev:
-        (pythonFixOverlay final prev)
+        (pythonNoTestsOverlay final prev)
         // { nanobot = self.packages.${final.stdenv.hostPlatform.system}.nanobot; };
 
       nixosModules.nanobot = import ./nix/nanobot-module.nix { inherit self; };
