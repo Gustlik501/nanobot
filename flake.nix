@@ -9,15 +9,16 @@
   outputs = { self, nixpkgs, flake-utils }:
     let
       inherit (flake-utils.lib) eachDefaultSystem mkApp;
-      pythonFixOverlay = final: prev: {
+      pythonNoTestsOverlay = final: prev: {
         python311Packages = prev.python311Packages.overrideScope (pyFinal: pyPrev: {
-          apscheduler = pyPrev.apscheduler.overridePythonAttrs (_: { doCheck = false; });
+          buildPythonPackage = args: pyPrev.buildPythonPackage (args // { doCheck = false; });
+          buildPythonApplication = args: pyPrev.buildPythonApplication (args // { doCheck = false; });
         });
       };
     in
     eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; overlays = [ pythonFixOverlay ]; };
+        pkgs = import nixpkgs { inherit system; overlays = [ pythonNoTestsOverlay ]; };
         lib = pkgs.lib;
         py = pkgs.python311Packages;
 
@@ -82,7 +83,7 @@
       }
     ) // {
       overlays.default = final: prev:
-        (pythonFixOverlay final prev)
+        (pythonNoTestsOverlay final prev)
         // { nanobot = self.packages.${final.stdenv.hostPlatform.system}.nanobot; };
 
       nixosModules.nanobot = import ./nix/nanobot-module.nix { inherit self; };
