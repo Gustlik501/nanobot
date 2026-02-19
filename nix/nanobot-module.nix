@@ -110,6 +110,7 @@ in
     systemd.services.nanobot = {
       description = "nanobot AI assistant";
       after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "simple";
